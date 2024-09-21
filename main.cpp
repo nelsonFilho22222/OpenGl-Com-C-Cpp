@@ -48,20 +48,48 @@ int main(int argc, char* argv[]) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
+    // 3D
     glDisable(GL_DEPTH_TEST);
 
-    // Renderização
-    glClear(GL_COLOR_BUFFER_BIT);
+    bool executando = true;
+    SDL_Event eventos;
+    while (executando) {
+        while(SDL_PollEvent(&eventos)) {
+            if(eventos.type == SDL_QUIT) {
+                executando = false;
+            }
+            if(eventos.type == SDL_KEYDOWN && eventos.key.keysym.sym == SDLK_ESCAPE) {
+                executando = false;
+            }
+        }
+        // Renderização
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    // Animação
-    SDL_GL_SwapWindow(window);
+        glPushMatrix();
+        glOrtho(0, 600,400 ,0 , -1, 1);
+        glColor4ub(255,0,0,255);
 
-    // Aguarda 5 segundos
-    SDL_Delay(5000);
 
-    // Limpa e encerra
-    SDL_GL_DeleteContext(glContext);
-    SDL_DestroyWindow(window);
+        glBegin(GL_LINES);
+
+        glVertex2i(50, 50);
+        glVertex2i(550, 350);
+
+        glEnd();
+        glPopMatrix();
+
+
+
+
+        // Animação
+        SDL_GL_SwapWindow(window);
+
+
+    }
+
+
+        // Aguarda 5 segundos
+    // SDL_Delay(5000);
     SDL_Quit();
 
     return 0;
