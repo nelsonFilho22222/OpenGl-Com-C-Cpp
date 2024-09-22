@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#define BLOCOS 10
+#define BLOCOS 15
 
 using namespace std;
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     Bloco blocos[BLOCOS];
 
-    for (int i = 0; i < BLOCOS; i++, blocos->x += 66) {
+    for (int i = 0; i < BLOCOS; i++, blocos->x += 65) {
         if(blocos->x > 560) {
             blocos->x = 4;
             blocos->y += 23;
@@ -149,6 +149,8 @@ int main(int argc, char* argv[]) {
                 if(colisao(inimigoX, inimigoY,inimigoComprimento, inimigoAltura,
                     blocos[i].x, blocos[i].y, blocos[i].comprimento, blocos[i].altura) == true) {
                     velX = -velX;
+                    blocos[i].vivo = false;
+                    break;
                 }
             }
         }
@@ -159,6 +161,8 @@ int main(int argc, char* argv[]) {
                 if(colisao(inimigoX, inimigoY,inimigoComprimento, inimigoAltura,
                     blocos[i].x, blocos[i].y, blocos[i].comprimento, blocos[i].altura) == true) {
                     velY = -velY;
+                    blocos[i].vivo = false;
+                    break;
                 }
             }
         }
@@ -211,10 +215,12 @@ int main(int argc, char* argv[]) {
         glColor4ub(0,0,255,255);
 
         for(int i = 0; i < BLOCOS; i++) {
-            glVertex2f(blocos[i].x, blocos[i].y);
-            glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y);
-            glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y + blocos[i].altura);
-            glVertex2f(blocos[i].x, blocos[i].y + blocos[i].altura);
+            if(blocos[i].vivo == true) {
+                glVertex2f(blocos[i].x, blocos[i].y);
+                glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y);
+                glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y + blocos[i].altura);
+                glVertex2f(blocos[i].x, blocos[i].y + blocos[i].altura);
+            }
         }
 
         glEnd();
