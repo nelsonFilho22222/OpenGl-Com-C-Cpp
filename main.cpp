@@ -53,15 +53,72 @@ int main(int argc, char* argv[]) {
 
     bool executando = true;
     SDL_Event eventos;
+
+
+    float atorX = 300;
+    float atorY = 300;
+    float atorComprimento = 50;
+    float atorAltura = 30;
+
+    float inimigoX = 50;
+    float inimigoY = 50;
+    float inimigoComprimento = 30;
+    float inimigoAltura = 30;
+
+    float velX = 2;
+    float velY = 2;
+
+    bool esquerda = false, direita = false;
+
     while (executando) {
         while(SDL_PollEvent(&eventos)) {
             if(eventos.type == SDL_QUIT) {
                 executando = false;
             }
-            if(eventos.type == SDL_KEYDOWN && eventos.key.keysym.sym == SDLK_ESCAPE) {
+            if(eventos.type == SDL_KEYUP && eventos.key.keysym.sym == SDLK_ESCAPE) {
                 executando = false;
             }
+            /* ---------------------------------- */
+            if(eventos.type == SDL_KEYDOWN) {
+                if(eventos.key.keysym.sym == SDLK_LEFT) {
+                    esquerda = true;
+                } else if(eventos.key.keysym.sym == SDLK_RIGHT) {
+                    direita = true;
+                }
+            }
+            else if(eventos.type == SDL_KEYUP) {
+                if(eventos.key.keysym.sym == SDLK_LEFT) {
+                    esquerda = false;
+                }
+                if(eventos.key.keysym.sym == SDLK_RIGHT) {
+                    direita = false;
+                }
+            }
         }
+        // logica
+
+        if(esquerda == true) {
+            atorX -= 8;
+        } else if(direita == true) {
+            atorX += 8;
+        }
+
+        inimigoX += velX;
+        inimigoY += velY;
+
+        if(inimigoX < 0) {
+            velX = -velX;
+        } else if(inimigoX + inimigoComprimento >= 600) {
+            velX = -velX;
+        } else if(inimigoY < 0) {
+            velY = -velY;
+        } else if(inimigoY + inimigoComprimento >= 400) {
+            velY = -velY;
+        }
+
+
+
+
         // Renderização
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -69,22 +126,30 @@ int main(int argc, char* argv[]) {
         glOrtho(0, 600,400 ,0 , -1, 1);
         glColor4ub(255,0,0,255);
 
+        glBegin(GL_QUADS);
 
-        glBegin(GL_LINES);
-
-        glVertex2i(50, 50);
-        glVertex2i(550, 350);
+        glVertex2f(atorX, atorY);
+        glVertex2f(atorX + atorComprimento, atorY);
+        glVertex2f(atorX + atorComprimento, atorY + atorAltura);
+        glVertex2f(atorX, atorY + atorAltura);
 
         glEnd();
+
+
+        glColor4ub(0,0,255,255);
+        glBegin(GL_QUADS);
+
+        glVertex2f(inimigoX, inimigoY);
+        glVertex2f(inimigoX + inimigoComprimento, inimigoY);
+        glVertex2f(inimigoX + inimigoComprimento, inimigoY + inimigoAltura);
+        glVertex2f(inimigoX, inimigoY + inimigoAltura);
+
+        glEnd();
+
+
         glPopMatrix();
-
-
-
-
         // Animação
         SDL_GL_SwapWindow(window);
-
-
     }
 
 
