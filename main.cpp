@@ -1,8 +1,27 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#define BLOCOS 10
 
 using namespace std;
+
+bool colisao(float Ax, float Ay, float Acomp, float Aalt,
+            float Bx, float By, float Bcomp, float Balt) {
+    if(Ay+Aalt < By)  return false;
+    if(Ay > By+Balt) return false;
+    if (Ax+Acomp < Bx) return false;
+    if (Ax > Bx+Bcomp) return false;
+
+    return true;
+}
+
+struct Bloco {
+    float x;
+    float y;
+    float comprimento;
+    float altura;
+    bool vivo;
+};
 
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -65,8 +84,23 @@ int main(int argc, char* argv[]) {
     float inimigoComprimento = 30;
     float inimigoAltura = 30;
 
-    float velX = 2;
+    float velX = 4;
     float velY = 2;
+
+    Bloco blocos[BLOCOS];
+
+    for (int i = 0; i < BLOCOS; i++, blocos->x += 66) {
+        if(blocos->x > 560) {
+            blocos->x = 4;
+            blocos->y += 23;
+        }
+
+        blocos[i].x = blocos->x;
+        blocos[i].y = blocos->y;
+        blocos[i].comprimento = 60;
+        blocos[i].altura = 20;
+        blocos[i].vivo = true;
+    }
 
     bool esquerda = false, direita = false;
 
@@ -102,9 +136,32 @@ int main(int argc, char* argv[]) {
         } else if(direita == true) {
             atorX += 8;
         }
+        if(atorX < 0) {
+            atorX = 0;
+        } else if(atorX + atorComprimento >= 600) {
+            atorX = 600 - atorComprimento;
+        }
+
 
         inimigoX += velX;
+        for(int i = 0; i < BLOCOS; i++) {
+            if(blocos[i].vivo == true) {
+                if(colisao(inimigoX, inimigoY,inimigoComprimento, inimigoAltura,
+                    blocos[i].x, blocos[i].y, blocos[i].comprimento, blocos[i].altura) == true) {
+                    velX = -velX;
+                }
+            }
+        }
+
         inimigoY += velY;
+        for(int i = 0; i < BLOCOS; i++) {
+            if(blocos[i].vivo == true) {
+                if(colisao(inimigoX, inimigoY,inimigoComprimento, inimigoAltura,
+                    blocos[i].x, blocos[i].y, blocos[i].comprimento, blocos[i].altura) == true) {
+                    velY = -velY;
+                }
+            }
+        }
 
         if(inimigoX < 0) {
             velX = -velX;
@@ -113,10 +170,13 @@ int main(int argc, char* argv[]) {
         } else if(inimigoY < 0) {
             velY = -velY;
         } else if(inimigoY + inimigoComprimento >= 400) {
-            velY = -velY;
+            executando = false;
         }
 
-
+        if(colisao(inimigoX, inimigoY, inimigoComprimento, inimigoAltura,
+                   atorX, atorY, atorComprimento, inimigoAltura)) {
+            velY = -velY;
+        }
 
 
         // Renderização
@@ -146,6 +206,18 @@ int main(int argc, char* argv[]) {
 
         glEnd();
 
+        glBegin(GL_QUADS);
+
+        glColor4ub(0,0,255,255);
+
+        for(int i = 0; i < BLOCOS; i++) {
+            glVertex2f(blocos[i].x, blocos[i].y);
+            glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y);
+            glVertex2f(blocos[i].x + blocos[i].comprimento, blocos[i].y + blocos[i].altura);
+            glVertex2f(blocos[i].x, blocos[i].y + blocos[i].altura);
+        }
+
+        glEnd();
 
         glPopMatrix();
         // Animação
