@@ -1,9 +1,44 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
+#include "string"
+
+
 #define BLOCOS 15
 
-using namespace std;
+
+
+GLuint loadTexture(const std::string&fileName) {
+    SDL_Surface* ator = IMG_Load(fileName.c_str());
+    if (!ator) {
+        std::cout << "Erro ao carregar a textura: " << IMG_GetError() << std::endl;
+        return 0; // ou algum valor que indique falha
+    }
+
+    SDL_Surface* convertedSurface = SDL_ConvertSurfaceFormat(ator, SDL_PIXELFORMAT_RGBA32, 0);
+    if (!convertedSurface) {
+        SDL_FreeSurface(ator);
+        std::cout << "Erro ao converter a superfície: " << IMG_GetError() << std::endl;
+        return 0;
+    }
+
+    unsigned objetct(0);
+    glGenTextures(1, &objetct);
+    glBindTexture(GL_TEXTURE_2D, objetct);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    GLenum format = ator->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, ator->w, ator->h, 0, format, GL_UNSIGNED_BYTE, ator->pixels);
+
+    SDL_FreeSurface(ator);
+
+    return objetct;
+}
 
 bool colisao(float Ax, float Ay, float Acomp, float Aalt,
             float Bx, float By, float Bcomp, float Balt) {
@@ -25,7 +60,7 @@ struct Bloco {
 
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        cout << "Erro ao inicializar SDL: " << SDL_GetError() << endl;
+        std::cout << "Erro ao inicializar SDL: " << SDL_GetError() << std::endl;
         return -1;
     }
 
@@ -46,7 +81,7 @@ int main(int argc, char* argv[]) {
         SDL_WINDOW_OPENGL);
 
     if (!window) {
-        cout << "Erro ao criar a janela: " << SDL_GetError() << endl;
+        std::cout << "Erro ao criar a janela: " << SDL_GetError() << std::endl;
         SDL_Quit();
         return -1;
     }
@@ -70,22 +105,26 @@ int main(int argc, char* argv[]) {
     // 3D
     glDisable(GL_DEPTH_TEST);
 
+    // Usando o ator
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     bool executando = true;
     SDL_Event eventos;
 
 
     float atorX = 300;
-    float atorY = 300;
+    float atorY = 350;
     float atorComprimento = 50;
-    float atorAltura = 30;
+    float atorAltura = 25;
 
     float inimigoX = 50;
     float inimigoY = 50;
     float inimigoComprimento = 30;
     float inimigoAltura = 30;
 
-    float velX = 4;
-    float velY = 2;
+    float velX = 6;
+    float velY = 4;
 
     Bloco blocos[BLOCOS];
 
@@ -103,6 +142,14 @@ int main(int argc, char* argv[]) {
     }
 
     bool esquerda = false, direita = false;
+
+    unsigned int person_textura = 0;
+    person_textura = loadTexture("/home/rothmans/CLionProjects/untitled/assets/ator0.png");
+
+    if (person_textura == 0) {
+        std::cout << "Falha ao carregar a textura." << std::endl;
+    }
+
 
     while (executando) {
         while(SDL_PollEvent(&eventos)) {
@@ -188,14 +235,18 @@ int main(int argc, char* argv[]) {
 
         glPushMatrix();
         glOrtho(0, 600,400 ,0 , -1, 1);
-        glColor4ub(255,0,0,255);
+
+        glColor4ub(255,255,255,255);
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, person_textura);
 
         glBegin(GL_QUADS);
 
-        glVertex2f(atorX, atorY);
-        glVertex2f(atorX + atorComprimento, atorY);
-        glVertex2f(atorX + atorComprimento, atorY + atorAltura);
-        glVertex2f(atorX, atorY + atorAltura);
+        glTexCoord2d(0,0);            glVertex2f(atorX, atorY);
+        glTexCoord2d(1,0);            glVertex2f(atorX + atorComprimento, atorY);
+        glTexCoord2d(1,1);            glVertex2f(atorX + atorComprimento, atorY + atorAltura);
+        glTexCoord2d(0,1);            glVertex2f(atorX, atorY + atorAltura);
 
         glEnd();
 
